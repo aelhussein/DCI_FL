@@ -21,6 +21,7 @@ import sys
 import argparse
 import subprocess
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
 # In[3]:
@@ -92,7 +93,7 @@ def main():
     # Import the data
     X_train_norm, X_test_norm, X_val_norm, y_train, y_test, y_val = dataloader(f'{path}{client}/Data/')
     # Load and run the neural network
-    client_model = tf.keras.models.load_model(f'{path}{client}/model/')
+    client_model = tf.keras.models.load_model(f'{path}{client}/model/LR')
     if test == 'False':
         # Evaluate on the validation set    
         validate_loss, validate_auc = client_model.evaluate(X_val_norm, y_val, verbose=0)
@@ -102,7 +103,7 @@ def main():
             client_model.fit(X_train_norm, y_train, verbose=0, epochs=epochs, callbacks=[history])
 
         # Save model
-        client_model.save(f'{path}{client}/model')
+        client_model.save(f'{path}{client}/model/LR')
         # Calculate loss + auc
         keys = list(history.history.keys())
         train_loss = history.history[keys[0]][-1]
@@ -110,7 +111,7 @@ def main():
 
 
         # Send the weights back to master server
-        command = f'cp -r {path}{client}/model/* {path}server/model/client_models/{client}'
+        command = f'cp -r {path}{client}/model/LR/* {path}server/model/client_models/{client}/LR'
         subprocess.call(command, shell = True) 
 
         # Reset stdout and print
